@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kirtan · Sing Along</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-title" content="Kirtan">
+<meta name="theme-color" content="#1f2440">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;600&family=Noto+Serif+Gujarati:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400..600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fafaf7; --panel:#fff; --ink:#1f2440; --muted:#5b5e6e; --line:#e2e0d8;
+  --accent:#a86200; --tint:#fbeeda; --tint-ink:#6a3e00; --warn:#9a3b1e;
+  --ui:"Hind Vadodara",system-ui,-apple-system,sans-serif;
+  --serif:"Source Serif 4",Georgia,serif; --gu:"Noto Serif Gujarati","Gujarati Sangam MN",serif;
+  --size:1.3rem;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#14161f; --panel:#1c1f2b; --ink:#e7e6ee; --muted:#a0a2b2; --line:#2e3140;
+  --accent:#f0a43a; --tint:#3a2c17; --tint-ink:#f6d3a0; --warn:#f09a7a; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--serif);-webkit-font-smoothing:antialiased;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gu{font-family:var(--gu)}
+
+header{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);
+  padding:calc(8px + env(safe-area-inset-top,0px)) 16px 8px;display:flex;align-items:center;gap:10px;font-family:var(--ui)}
+header h1{margin:0;font-size:15px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header h1 span{color:var(--muted);font-weight:400}
+.hbtn{border:1px solid var(--line);background:var(--bg);border-radius:9px;min-height:40px;padding:0 12px;font:600 14px var(--ui)}
+
+main{max-width:40rem;margin:0 auto;padding:20px 16px 40px}
+.padhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-bottom:6px}
+.padhead h2{margin:0;font:600 1.6rem/1.2 var(--ui)}
+.padhead .sec{font:14px var(--ui);color:var(--muted)}
+.padref{font:13px/1.5 var(--ui);color:var(--muted);margin:0 0 4px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 22px;font-family:var(--ui);font-size:14px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:5px 12px;text-decoration:none;color:var(--ink);font:500 14px var(--ui)}
+.chip[aria-pressed="true"]{background:var(--tint);color:var(--tint-ink);border-color:transparent}
+
+.st{position:relative;margin:0 -10px 14px;border-radius:12px}
+.st.tek{background:var(--tint)}
+.tap{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 46px 10px 10px;border-radius:12px}
+.tap:hover{background:color-mix(in srgb,var(--tint) 50%,transparent)}
+.st.tek .tap:hover{background:none}
+.lbl{display:block;font:600 11px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.st.tek .lbl{color:var(--tint-ink)}
+.lbl .chhap{color:var(--accent)}
+.ro{display:block;font-size:var(--size);line-height:1.42}
+.st.tek .ro{font-weight:600}
+.gl-line{display:none;font-family:var(--gu);font-size:calc(var(--size)*.62);color:var(--muted);line-height:1.5;margin-top:4px}
+body.both .gl-line{display:block}
+.mean{display:none;margin:0 10px 0;padding:10px 0 12px;border-top:1px dashed var(--line);font-size:1rem;line-height:1.55}
+.st.open .mean{display:block}
+.mean .en{margin:0}
+.mean .none{color:var(--muted);font-style:italic;margin:0}
+.glosses{margin:8px 0 0;font:14px/1.5 var(--ui);color:var(--muted)}
+.glosses b{color:var(--ink);font-weight:600}
+.snote{margin:8px 0 0;font-size:.92rem;color:var(--muted)}
+.draft{display:inline-block;font:600 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--tint-ink);
+  background:var(--tint);border-radius:4px;padding:1px 6px;margin-right:6px;vertical-align:2px}
+.st.tek .draft{background:var(--panel)}
+.cue{display:block;font:13px/1.5 var(--ui);color:var(--muted);margin-top:4px}
+.chk{margin:6px 0 0;font:13px/1.45 var(--ui);color:var(--warn)}
+.star{position:absolute;right:4px;top:6px;width:40px;height:40px;border:0;background:none;border-radius:50%;
+  font:20px/40px system-ui,sans-serif;color:var(--muted);opacity:.45;padding:0}
+.star.on{color:var(--accent);opacity:1}
+.st:target{scroll-margin-top:70px}
+
+.pager{display:flex;gap:10px;margin-top:28px;font-family:var(--ui)}
+.pager a{flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);text-decoration:none;font-size:14px}
+.pager a span{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pager a.nx{text-align:right}
+.pager .ph{visibility:hidden}
+.foot{margin-top:30px;font:13px/1.5 var(--ui);color:var(--muted)}
+
+/* bottom bar: thumb reach */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--panel);border-top:1px solid var(--line);
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:6px;font-family:var(--ui)}
+.bar button{min-width:44px;min-height:44px;border:1px solid var(--line);background:var(--bg);border-radius:10px;font:600 15px var(--ui);padding:0 8px}
+.bar button[aria-pressed="true"]{background:var(--tint);color:var(--tint-ink);border-color:transparent}
+.bar button:disabled{opacity:.35;cursor:default}
+.bar .grow{flex:1;max-width:90px}
+
+/* index + saved panels reuse main */
+.search{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font:16px var(--ui);margin:6px 0 16px}
+.colhead{font:600 1.15rem var(--ui);margin:30px 0 0}
+.colhead:first-child{margin-top:8px}
+.sechead{font:600 12px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:22px 0 8px}
+.list{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;gap:12px;align-items:baseline;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--ink);text-decoration:none;font-family:var(--ui)}
+.row:hover{border-color:var(--accent)}
+.row .n{font-weight:600;min-width:2.2em;font-variant-numeric:tabular-nums;color:var(--muted)}
+.row .t{flex:1;min-width:0}
+.row .t i{display:block;font-style:normal;font-size:13px;color:var(--muted)}
+.row .m{font-size:12px;color:var(--muted);white-space:nowrap}
+mark{background:var(--tint);color:inherit;border-radius:2px}
+.meta{font:14px/1.5 var(--ui);color:var(--muted);margin:4px 0 14px}
+.nudge{font:14px/1.55 var(--ui);background:var(--tint);color:var(--tint-ink);border-radius:10px;padding:10px 13px;margin:0 0 14px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.card .where{display:block;font:600 12px var(--ui);color:var(--accent);margin-bottom:4px}
+.card .ro{font-size:1.05rem}
+.note{display:block;width:100%;min-height:52px;margin:10px 0 8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font:15px/1.5 var(--serif);resize:vertical}
+.empty{color:var(--muted);font-style:italic}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <button class="hbtn" id="idxBtn" aria-label="All kirtans">☰ All</button>
+  <h1 id="ttl">Chosath Padi <span>· ચોસઠ પદી</span></h1>
+  <button class="hbtn" id="savedBtn" aria-label="Saved and recent">★ <span id="bmN"></span></button>
+</header>
+<main id="main"></main>
+<nav class="bar" aria-label="Pad controls">
+  <button id="prev" class="grow" aria-label="Previous pad">‹</button>
+  <button id="guBtn" aria-pressed="false" aria-label="Show Gujarati above each line" title="Show Gujarati">ગુ</button>
+  <button id="smaller" aria-label="Smaller text">A−</button>
+  <button id="bigger" aria-label="Larger text">A+</button>
+  <button id="wake" aria-pressed="false" aria-label="Keep screen on" title="Keep screen on">☀︎</button>
+  <button id="next" class="grow" aria-label="Next pad">›</button>
+</nav>
+<script src="data.js"></script>
+<script>
+const K=window.KIRTAN, main=document.getElementById('main');
+const SONGS=[], BYID={}, ST={};                 // flat song list; id -> song; stanza id -> {song, st, k}
+K.collections.forEach(c=>c.songs.forEach(s=>{
+  s.col=c; s.i=SONGS.length; SONGS.push(s); BYID[s.id]=s;
+  s.name=s.name||'Pad '+s.n;
+  s.stanzas.forEach((st,k)=>ST[st.id]={song:s,st,k});
+}));
+const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}},
+          set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}};
+
+// ---- bookmarks + history: this browser only; every change re-reads storage first, so an
+// old tab left open can't save its stale list over newer bookmarks. Back up / Restore moves them.
+const BK='kirtan.bookmarks.v1', HIST='kirtan.history.v1', BKUP='kirtan.backup.v1', LAST='kirtan.last.v1';
+let storeOk=true, bms=[];
+function readList(k){
+  try{ const v=JSON.parse(localStorage.getItem(k)||'[]'); storeOk=true; return Array.isArray(v)?v:[] }
+  catch(e){ storeOk=false; return k===BK?bms:[] }
+}
+function editBm(fn){
+  bms=readList(BK); fn(bms);
+  storeOk=ls.set(BK,JSON.stringify(bms)); count();
+}
+const count=()=>document.getElementById('bmN').textContent=bms.length||'';
+const isBm=id=>bms.some(x=>x.id===id);
+function toggleBm(id){
+  editBm(l=>{const i=l.findIndex(x=>x.id===id); if(i>=0)l.splice(i,1); else l.push({id,t:Date.now(),note:''})});
+  if(isBm(id)) try{ navigator.storage.persist() }catch(e){}
+}
+function noteHistory(songId){
+  const l=readList(HIST).filter(x=>x.id!==songId); l.unshift({id:songId,t:Date.now()});
+  ls.set(HIST,JSON.stringify(l.slice(0,30)));
+}
+addEventListener('storage',e=>{
+  if(e.key!==BK)return; bms=readList(BK); count();
+  if(view==='saved'&&!main.contains(document.activeElement)) showSaved();
+  if(view==='song') main.querySelectorAll('.star').forEach(b=>paintStar(b,isBm(b.dataset.id)));
+});
+bms=readList(BK); count();
+
+// ---- display preferences ----
+const SIZES=[1.05,1.18,1.3,1.5,1.75,2.05];
+let size=+ls.get('kirtan.size',2); if(!(size>=0&&size<SIZES.length))size=2;
+function setSize(i){size=Math.max(0,Math.min(SIZES.length-1,i));document.documentElement.style.setProperty('--size',SIZES[size]+'rem');
+  ls.set('kirtan.size',size); document.getElementById('smaller').disabled=size===0; document.getElementById('bigger').disabled=size===SIZES.length-1}
+document.getElementById('smaller').onclick=()=>setSize(size-1);
+document.getElementById('bigger').onclick=()=>setSize(size+1);
+setSize(size);
+const guBtn=document.getElementById('guBtn');
+function setGu(on){document.body.classList.toggle('both',on);guBtn.setAttribute('aria-pressed',on);ls.set('kirtan.gu',on?'1':'0')}
+guBtn.onclick=()=>setGu(!document.body.classList.contains('both'));
+setGu(ls.get('kirtan.gu','0')==='1');
+
+// keep the screen on while singing; the browser drops the lock when the page is hidden, so take it again on return
+const wakeBtn=document.getElementById('wake'); let lock=null, wantWake=false;
+async function getLock(){ try{ lock=await navigator.wakeLock.request('screen'); lock.addEventListener('release',()=>{lock=null}) }catch(e){ lock=null } }
+if(!('wakeLock' in navigator)) wakeBtn.hidden=true;
+wakeBtn.onclick=async()=>{
+  wantWake=!wantWake; wakeBtn.setAttribute('aria-pressed',wantWake);
+  if(wantWake) await getLock(); else if(lock){ await lock.release(); lock=null }
+  if(wantWake&&!lock){ wantWake=false; wakeBtn.setAttribute('aria-pressed',false) }
+};
+document.addEventListener('visibilitychange',()=>{ if(wantWake&&!lock&&document.visibilityState==='visible') getLock() });
+
+// prev/next stay inside the collection being sung
+const step=(i,d)=>{const j=i+d;return SONGS[j]&&SONGS[j].col===SONGS[i].col?j:-1};
+const where=(s,st)=>s.name+', '+(st.tek?'tek':'stanza '+st.no);
+
+// ---- a pad ----
+let view='song', cur=0;
+function paintStar(b,on){b.classList.toggle('on',on);b.textContent=on?'★':'☆';b.setAttribute('aria-label',on?'Remove bookmark':'Bookmark this stanza')}
+function stanzaHTML(s,st,k,opts={}){
+  const label=st.tek?'Tek · refrain':'Stanza '+st.no;
+  const lines=st.ro.map((r,i)=>'<span class="gl-line">'+esc(st.gu[i])+'</span><span class="ro">'+esc(r)+'</span>').join('');
+  const mean=st.en
+    ?'<p class="en"><span class="draft" title="Our own draft meaning, not yet reviewed">draft</span>'+esc(st.en)+'</p>'+
+      (st.gl?'<p class="glosses">'+st.gl.map(g=>'<b>'+esc(g[0])+'</b> '+esc(g[1])).join(' · ')+'</p>':'')+
+      (st.note?'<p class="snote">'+esc(st.note)+'</p>':'')+
+      (st.check?'<p class="chk">To check: '+esc(st.check)+'</p>':'')
+    :'<p class="none">Meaning not written yet.</p>';
+  return '<div class="st'+(st.tek?' tek':'')+(opts.open?' open':'')+'" id="'+st.id+'" data-id="'+st.id+'">'+
+    '<button class="tap" aria-expanded="'+(opts.open?'true':'false')+'"><span class="lbl">'+label+
+    (st.chhap?' · <span class="chhap">chhap</span>':'')+'</span>'+lines+
+    (st.back?'<span class="cue">↺ back to the tek: '+esc(st.back)+'…</span>':'')+
+    (st.alt?'<span class="cue">Also sung: '+st.alt.map(a=>esc(a[1])+' for '+esc(a[0])).join('; ')+'</span>':'')+'</button>'+
+    '<button class="star" data-id="'+st.id+'"></button><div class="mean">'+mean+'</div></div>';
+}
+function wireStanzas(){
+  main.querySelectorAll('.st').forEach(el=>{
+    const tap=el.querySelector('.tap');
+    tap.onclick=()=>{const o=!el.classList.contains('open');el.classList.toggle('open',o);tap.setAttribute('aria-expanded',o)};
+  });
+  main.querySelectorAll('.star').forEach(b=>{paintStar(b,isBm(b.dataset.id));
+    b.onclick=()=>{toggleBm(b.dataset.id);paintStar(b,isBm(b.dataset.id));if(view==='saved')showSaved()}});
+}
+function showSong(i,focus){
+  view='song'; cur=i; const s=SONGS[i];
+  document.getElementById('ttl').innerHTML=esc(s.col.title)+' <span>· '+esc(s.col.gu)+'</span>';
+  const p=step(i,-1), n=step(i,1);
+  main.innerHTML=
+    '<div class="padhead"><h2>'+esc(s.name)+'</h2>'+(s.ref&&!s.pad?'':'<span class="sec">'+esc(s.section.en)+(s.pad?', pad '+s.pad:'')+' · <span class="gu">'+esc(s.section.gu)+'</span></span>')+'</div>'+
+    (s.ref?'<p class="padref">'+esc(s.poet)+' · '+esc(s.ref)+'</p>':'')+
+    (s.note?'<p class="padref">'+esc(s.note)+'</p>':'')+
+    '<div class="tools"><button class="chip" id="allM" aria-pressed="false">Show all meanings</button>'+
+    '<a class="chip" href="'+esc(s.listen)+'" target="_blank" rel="noopener">Listen on anirdesh ↗</a></div>'+
+    s.stanzas.map((st,k)=>stanzaHTML(s,st,k)).join('')+
+    '<div class="pager">'+(p>=0?'<a href="#'+SONGS[p].id+'"><span>‹ Previous</span>'+esc(SONGS[p].name)+'</a>':'<a class="ph">&nbsp;</a>')+
+      (n>=0?'<a class="nx" href="#'+SONGS[n].id+'"><span>Next ›</span>'+esc(SONGS[n].name)+'</a>':'<a class="ph">&nbsp;</a>')+'</div>'+
+    '<p class="foot">'+esc(s.col.title)+' by '+esc(s.col.poet)+'. Gujarati text from <a href="'+esc(s.col.source)+'" target="_blank" rel="noopener">anirdesh.com</a>; '+
+    'Roman spelling and meanings are our own and still being reviewed.</p>';
+  wireStanzas();
+  const all=document.getElementById('allM');
+  all.onclick=()=>{const on=all.getAttribute('aria-pressed')!=='true';all.setAttribute('aria-pressed',on);
+    main.querySelectorAll('.st').forEach(el=>{el.classList.toggle('open',on);el.querySelector('.tap').setAttribute('aria-expanded',on)})};
+  document.getElementById('prev').disabled=p<0; document.getElementById('next').disabled=n<0;
+  const t=focus&&document.getElementById(focus);
+  if(t){ t.classList.add('open'); t.querySelector('.tap').setAttribute('aria-expanded','true'); t.scrollIntoView({block:'start'}) }
+  else window.scrollTo(0,0);
+  ls.set(LAST,s.id); noteHistory(s.id);
+}
+document.getElementById('prev').onclick=()=>{const j=step(cur,-1);if(j>=0)location.hash=SONGS[j].id};
+document.getElementById('next').onclick=()=>{const j=step(cur,1);if(j>=0)location.hash=SONGS[j].id};
+addEventListener('keydown',e=>{
+  if(view!=='song'||e.target.closest('input,textarea'))return;
+  if(e.key==='ArrowLeft')document.getElementById('prev').click();
+  if(e.key==='ArrowRight')document.getElementById('next').click();
+});
+
+// ---- index of pads, with search ----
+function showIndex(qv=''){
+  view='index'; document.getElementById('prev').disabled=document.getElementById('next').disabled=true;
+  main.innerHTML='<h2 style="font:600 1.4rem var(--ui);margin:0">All kirtans</h2>'+
+    '<input class="search" id="q" type="search" placeholder="Search Roman, Gujarati or English…" autocomplete="off" value="'+esc(qv)+'"><div id="res"></div>';
+  const q=document.getElementById('q'); q.oninput=()=>renderIndex(q.value.trim()); renderIndex(qv);
+  window.scrollTo(0,0);
+}
+function renderIndex(s){
+  const res=document.getElementById('res'); let h='';
+  if(s.length>=2){
+    const rx=new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'), hits=[];
+    SONGS.forEach(so=>so.stanzas.forEach((st,k)=>{
+      const line=[...st.ro,...st.gu,st.en||''].find(t=>rx.test(t)); if(line)hits.push({so,st,k,line});
+    }));
+    h='<p class="meta">'+hits.length+' stanza'+(hits.length==1?'':'s')+' matching “'+esc(s)+'”</p><div class="list">'+
+      hits.slice(0,150).map(x=>'<a class="row" href="#'+x.st.id+'"><span class="n">'+x.so.n+'.'+x.st.no+'</span><span class="t">'+
+        esc(x.line).replace(new RegExp('('+esc(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>')+'</span></a>').join('')+'</div>';
+  }else{
+    let sec=null, col=null;
+    SONGS.forEach(so=>{
+      if(so.col!==col){ if(sec!==null)h+='</div>'; sec=null; col=so.col;
+        h+='<h3 class="colhead">'+esc(col.title)+' · <span class="gu">'+esc(col.gu)+'</span></h3>'; }
+      if(so.section.gu!==sec){ if(sec!==null)h+='</div>'; sec=so.section.gu;
+        h+='<div class="sechead">'+esc(so.section.en)+' · <span class="gu">'+esc(so.section.gu)+'</span></div><div class="list">'; }
+      const has=so.stanzas.some(st=>st.en);
+      h+='<a class="row" href="#'+so.id+'"><span class="n">'+so.n+'</span><span class="t">'+esc(so.stanzas[0].ro[0].replace(/[;,]$/,''))+
+        '</span>'+(has?'<span class="m">meaning</span>':'')+'</a>';
+    });
+    h+='</div>';
+  }
+  res.innerHTML=h;
+}
+
+// ---- saved: bookmarks, notes, recently sung, back up / restore ----
+function ago(t){const d=Math.floor((Date.now()-t)/864e5);return d<1?'today':d<2?'yesterday':d+' days ago'}
+function showSaved(){
+  view='saved'; document.getElementById('prev').disabled=document.getElementById('next').disabled=true;
+  bms=readList(BK); count();
+  const L=[...bms].sort((a,b)=>b.t-a.t), H=readList(HIST).filter(x=>BYID[x.id]).slice(0,10);
+  const last=+ls.get(BKUP,0)||0, stale=L.length&&(!last||Date.now()-last>30*864e5);
+  let h='<h2 style="font:600 1.4rem var(--ui);margin:0">Saved</h2>'+
+    '<p class="meta">'+L.length+' bookmarked · kept in this browser on this device only · '+(last?'last backed up '+ago(last):'not backed up yet')+'</p>'+
+    (stale?'<p class="nudge">Browsers sometimes clear saved data, so keep a copy. <b>Back up</b> saves a small file to Files, iCloud or Notes; <b>Restore</b> brings it back on any device.</p>':'')+
+    '<div class="btns"><button class="chip" id="bkup">Back up</button><button class="chip" id="rest">Restore…</button>'+
+    '<input type="file" id="file" accept=".json,application/json" hidden></div>';
+  if(!storeOk) h+='<p class="empty">This browser is blocking storage (private mode?), so bookmarks won’t be kept after you close the page.</p>';
+  if(H.length) h+='<div class="sechead">Recently sung</div><div class="list">'+H.map(x=>{const so=BYID[x.id];
+    return '<a class="row" href="#'+so.id+'"><span class="t">'+esc(so.name)+'<i>'+esc(so.col.title)+'</i></span><span class="m">'+ago(x.t)+'</span></a>'}).join('')+'</div>';
+  h+='<div class="sechead">Bookmarks</div>';
+  if(!L.length) h+='<p class="empty">Nothing saved yet. Tap the ☆ beside any stanza to keep it here.</p>';
+  L.forEach(x=>{const e=ST[x.id];
+    h+='<div class="card" data-id="'+esc(x.id)+'"><span class="where">'+(e?esc(e.song.col.title)+' · '+esc(where(e.song,e.st)):esc(x.id))+'</span>'+
+      (e?e.st.ro.map(r=>'<span class="ro">'+esc(r)+'</span>').join(''):'<p class="empty">This stanza is no longer in the data.</p>')+
+      '<textarea class="note" placeholder="Your note…">'+esc(x.note||'')+'</textarea>'+
+      '<div class="btns">'+(e?'<a class="chip" href="#'+esc(x.id)+'">Open in pad</a>':'')+'<button class="chip" data-rm>Remove</button></div></div>'});
+  main.innerHTML=h; window.scrollTo(0,0);
+  main.querySelectorAll('.card').forEach(card=>{
+    const id=card.dataset.id, ta=card.querySelector('.note');
+    const setNote=()=>editBm(l=>{const x=l.find(y=>y.id===id); if(x)x.note=ta.value});
+    let tn; ta.oninput=()=>{clearTimeout(tn);tn=setTimeout(setNote,300)};
+    ta.onblur=()=>{const x=bms.find(y=>y.id===id); if(x&&x.note!==ta.value)setNote()};
+    card.querySelector('[data-rm]').onclick=()=>{editBm(l=>{const i=l.findIndex(y=>y.id===id);if(i>=0)l.splice(i,1)});showSaved()};
+  });
+  document.getElementById('bkup').onclick=backup;
+  const f=document.getElementById('file');
+  document.getElementById('rest').onclick=()=>f.click();
+  f.onchange=()=>{const file=f.files[0]; if(file)file.text().then(restore)};
+}
+// Back up: the share sheet on phones (save to Files / iCloud / Notes), a download elsewhere
+async function backup(){
+  bms=readList(BK);
+  const out={app:'kirtan-reader',version:1,exported:new Date().toISOString(),
+    bookmarks:bms.map(x=>{const e=ST[x.id];return {id:x.id,t:x.t,note:x.note||'',roman:e?e.st.ro:null,gujarati:e?e.st.gu:null}}),
+    history:readList(HIST)};
+  const name='kirtan-bookmarks-'+new Date().toISOString().slice(0,10)+'.json';
+  const file=new File([JSON.stringify(out,null,1)],name,{type:'application/json'});
+  const done=()=>{ls.set(BKUP,String(Date.now()));showSaved()};
+  if(navigator.canShare&&navigator.canShare({files:[file]}))
+    try{ await navigator.share({files:[file],title:'Kirtan bookmarks'}); done(); return }
+    catch(e){ if(e.name==='AbortError')return }      // cancelled; anything else falls back to download
+  const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  done();
+}
+function restore(text){
+  let arr, hist=[];
+  try{ const d=JSON.parse(text); arr=Array.isArray(d)?d:d.bookmarks; if(!Array.isArray(arr))throw 0; if(Array.isArray(d.history))hist=d.history }
+  catch(e){ alert('That file doesn’t look like a bookmarks backup.'); return }
+  let added=0;
+  editBm(l=>arr.forEach(x=>{
+    if(!x||typeof x.id!=='string'||!/^[a-z]+-\d+\.\d+$/.test(x.id))return;
+    const have=l.find(y=>y.id===x.id);
+    if(!have){l.push({id:x.id,t:+x.t||Date.now(),note:String(x.note||'')});added++}
+    else if(!have.note&&x.note) have.note=String(x.note);
+  }));
+  const by={};
+  [...readList(HIST),...hist].forEach(x=>{ if(x&&typeof x.id==='string'&&BYID[x.id]&&+x.t&&!(by[x.id]&&by[x.id].t>=+x.t)) by[x.id]={id:x.id,t:+x.t} });
+  ls.set(HIST,JSON.stringify(Object.values(by).sort((a,b)=>b.t-a.t).slice(0,30)));
+  showSaved();
+  alert(added+' bookmark'+(added==1?'':'s')+' added'+(arr.length>added?' ('+(arr.length-added)+' already here)':'')+'.');
+}
+
+// ---- routing: #cp-1 / #ch-170 (a song), #cp-1.2 / #ch-183.0 (a stanza), #pads, #saved ----
+function route(){
+  const h=decodeURIComponent(location.hash.slice(1));
+  if(h==='pads') return showIndex();
+  if(h==='saved') return showSaved();
+  if(ST[h]) return showSong(ST[h].song.i,h);
+  if(BYID[h]) return showSong(BYID[h].i);
+  const last=ls.get(LAST,''); const s=BYID[last]||SONGS[0];
+  history.replaceState(null,'','#'+s.id); showSong(s.i);
+}
+addEventListener('hashchange',route);
+document.getElementById('idxBtn').onclick=()=>{location.hash='pads'};
+document.getElementById('savedBtn').onclick=()=>{location.hash='saved'};
+route();
+</script>
+</body>
+</html>

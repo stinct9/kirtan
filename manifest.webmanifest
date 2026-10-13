@@ -1,0 +1,10 @@
+{
+  "name": "Kirtan · Sing Along",
+  "short_name": "Kirtan",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fafaf7",
+  "theme_color": "#1f2440",
+  "icons": [{ "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }]
+}
