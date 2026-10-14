@@ -18,6 +18,7 @@
   --serif:"Source Serif 4",Georgia,serif; --gu:"Noto Serif Gujarati","Gujarati Sangam MN",serif;
   --size:1.3rem;
 }
+@media(min-width:700px){:root{--size:1.5rem}}
 @media(prefers-color-scheme:dark){:root{
   --bg:#14161f; --panel:#1c1f2b; --ink:#e7e6ee; --muted:#a0a2b2; --line:#2e3140;
   --accent:#f0a43a; --tint:#3a2c17; --tint-ink:#f6d3a0; --warn:#f09a7a; color-scheme:dark}}
@@ -59,9 +60,15 @@ main{max-width:40rem;margin:0 auto;padding:20px 16px 40px}
 .st.tek .lbl{color:var(--tint-ink)}
 .lbl .chhap{color:var(--accent)}
 .ro{display:block;font-size:var(--size);line-height:1.42}
+.ro .h2{display:block;padding-left:1.1em}
+.gu-in{margin:0 0 10px;font-family:var(--gu);font-size:1.05rem;line-height:1.75;color:var(--muted)}
+.tip{position:fixed;z-index:50;max-width:min(30rem,calc(100vw - 24px));padding:10px 14px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.18);font-family:var(--gu);font-size:1.05rem;line-height:1.75;display:none;pointer-events:none}
+.tip.show{display:block}
 .st.tek .ro{font-weight:600}
 .gl-line{display:none;font-family:var(--gu);font-size:calc(var(--size)*.62);color:var(--muted);line-height:1.5;margin-top:4px}
 body.both .gl-line{display:block}
+body.both .gu-in{display:none}
 .mean{display:none;margin:0 10px 0;padding:10px 0 12px;border-top:1px dashed var(--line);font-size:1rem;line-height:1.55}
 .st.open .mean{display:block}
 .mean .en{margin:0}
@@ -69,9 +76,6 @@ body.both .gl-line{display:block}
 .glosses{margin:8px 0 0;font:14px/1.5 var(--ui);color:var(--muted)}
 .glosses b{color:var(--ink);font-weight:600}
 .snote{margin:8px 0 0;font-size:.92rem;color:var(--muted)}
-.draft{display:inline-block;font:600 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--tint-ink);
-  background:var(--tint);border-radius:4px;padding:1px 6px;margin-right:6px;vertical-align:2px}
-.st.tek .draft{background:var(--panel)}
 .cue{display:block;font:13px/1.5 var(--ui);color:var(--muted);margin-top:4px}
 .chk{margin:6px 0 0;font:13px/1.45 var(--ui);color:var(--warn)}
 .star{position:absolute;right:4px;top:6px;width:40px;height:40px;border:0;background:none;border-radius:50%;
@@ -126,11 +130,10 @@ mark{background:var(--tint);color:inherit;border-radius:2px}
 <nav class="bar" aria-label="Pad controls">
   <button id="prev" class="grow" aria-label="Previous pad">‹</button>
   <button id="guBtn" aria-pressed="false" aria-label="Show Gujarati above each line" title="Show Gujarati">ગુ</button>
-  <button id="smaller" aria-label="Smaller text">A−</button>
-  <button id="bigger" aria-label="Larger text">A+</button>
   <button id="wake" aria-pressed="false" aria-label="Keep screen on" title="Keep screen on">☀︎</button>
   <button id="next" class="grow" aria-label="Next pad">›</button>
 </nav>
+<div class="tip" id="tip" aria-hidden="true"></div>
 <script src="data.js"></script>
 <script src="saved.js"></script>
 <script>
@@ -159,13 +162,6 @@ const isBm=id=>SV.has(id);
 count();
 
 // ---- display preferences ----
-const SIZES=[1.05,1.18,1.3,1.5,1.75,2.05];
-let size=+ls.get('kirtan.size',2); if(!(size>=0&&size<SIZES.length))size=2;
-function setSize(i){size=Math.max(0,Math.min(SIZES.length-1,i));document.documentElement.style.setProperty('--size',SIZES[size]+'rem');
-  ls.set('kirtan.size',size); document.getElementById('smaller').disabled=size===0; document.getElementById('bigger').disabled=size===SIZES.length-1}
-document.getElementById('smaller').onclick=()=>setSize(size-1);
-document.getElementById('bigger').onclick=()=>setSize(size+1);
-setSize(size);
 const guBtn=document.getElementById('guBtn');
 function setGu(on){document.body.classList.toggle('both',on);guBtn.setAttribute('aria-pressed',on);ls.set('kirtan.gu',on?'1':'0')}
 guBtn.onclick=()=>setGu(!document.body.classList.contains('both'));
@@ -189,15 +185,20 @@ const where=(s,st)=>s.name+', '+(st.tek?'tek':'stanza '+st.no);
 // ---- a pad ----
 let view='song', cur=0;
 function paintStar(b,on){b.classList.toggle('on',on);b.textContent=on?'★':'☆';b.setAttribute('aria-label',on?'Remove bookmark':'Bookmark this stanza')}
+// break a long line at the comma nearest its middle, so each half sings as one phrase
+function halves(r){
+  let best=-1; for(let i=r.indexOf(', ');i>=0;i=r.indexOf(', ',i+1)) if(best<0||Math.abs(i-r.length/2)<Math.abs(best-r.length/2)) best=i;
+  return r.length<30||best<10||r.length-best<12?esc(r):esc(r.slice(0,best+1))+' <span class="h2">'+esc(r.slice(best+2))+'</span>';
+}
 function stanzaHTML(s,st,k,opts={}){
   const label=st.tek?'Tek · refrain':'Stanza '+st.no;
-  const lines=st.ro.map((r,i)=>'<span class="gl-line">'+esc(st.gu[i])+'</span><span class="ro">'+esc(r)+'</span>').join('');
-  const mean=st.en
-    ?'<p class="en"><span class="draft" title="Our own draft meaning, not yet reviewed">draft</span>'+esc(st.en)+'</p>'+
+  const lines=st.ro.map((r,i)=>'<span class="gl-line">'+esc(st.gu[i])+'</span><span class="ro">'+halves(r)+'</span>').join('');
+  const mean='<p class="gu-in">'+st.gu.map(esc).join('<br>')+'</p>'+(st.en
+    ?'<p class="en">'+esc(st.en)+'</p>'+
       (st.gl?'<p class="glosses">'+st.gl.map(g=>'<b>'+esc(g[0])+'</b> '+esc(g[1])).join(' · ')+'</p>':'')+
       (st.note?'<p class="snote">'+esc(st.note)+'</p>':'')+
       (st.check?'<p class="chk">To check: '+esc(st.check)+'</p>':'')
-    :'<p class="none">Meaning not written yet.</p>';
+    :'<p class="none">Meaning not written yet.</p>');
   return '<div class="st'+(st.tek?' tek':'')+(opts.open?' open':'')+'" id="'+st.id+'" data-id="'+st.id+'">'+
     '<button class="tap" aria-expanded="'+(opts.open?'true':'false')+'"><span class="lbl">'+label+
     (st.chhap?' · <span class="chhap">chhap</span>':'')+'</span>'+lines+
@@ -208,10 +209,22 @@ function stanzaHTML(s,st,k,opts={}){
 function wireStanzas(){
   main.querySelectorAll('.st').forEach(el=>{
     const tap=el.querySelector('.tap');
-    tap.onclick=()=>{const o=!el.classList.contains('open');el.classList.toggle('open',o);tap.setAttribute('aria-expanded',o)};
+    tap.onclick=()=>{const o=!el.classList.contains('open');el.classList.toggle('open',o);tap.setAttribute('aria-expanded',o);tip.classList.remove('show')};
+    if(!HOVER)return;
+    tap.onmouseenter=e=>{ if(el.classList.contains('open')||document.body.classList.contains('both'))return;
+      tip.innerHTML=ST[el.dataset.id].st.gu.map(esc).join('<br>'); tip.classList.add('show'); place(e) };
+    tap.onmousemove=place; tap.onmouseleave=()=>tip.classList.remove('show');
   });
   main.querySelectorAll('.star').forEach(b=>{paintStar(b,isBm(b.dataset.id));
     b.onclick=()=>{SV.toggle(b.dataset.id);paintStar(b,isBm(b.dataset.id));if(view==='saved')showSaved()}});
+}
+const tip=document.getElementById('tip'), HOVER=matchMedia('(hover: hover) and (pointer: fine)').matches;
+function place(e){
+  if(!tip.classList.contains('show'))return;
+  const r=tip.getBoundingClientRect(); let x=e.clientX+18, y=e.clientY+18;
+  if(x+r.width>innerWidth-12) x=e.clientX-r.width-18;
+  if(y+r.height>innerHeight-12) y=Math.max(10,e.clientY-r.height-18);
+  tip.style.left=Math.max(12,Math.min(x,innerWidth-r.width-12))+'px'; tip.style.top=y+'px';
 }
 // a whole collection is one long scroll, like lyrics; the song in view drives the hash, title and ‹ ›
 let curCol=null, spy=null;
@@ -250,13 +263,15 @@ function setCur(i,fromScroll){
   sw.value=s.col.id; ls.set(LAST,s.id);
   if(fromScroll){ history.replaceState(null,'','#'+s.id); noteSung() }
 }
+history.scrollRestoration='manual';
 function showSong(i,focus){
   const s=SONGS[i];
   if(view!=='song'||curCol!==s.col) renderCol(s.col);
   view='song'; setCur(i); noteSung(true);
   const t=focus&&document.getElementById(focus);
   if(t){ t.classList.add('open'); t.querySelector('.tap').setAttribute('aria-expanded','true') }
-  (t||document.getElementById(s.id)).scrollIntoView({block:'start'});
+  const el=t||document.getElementById(s.id); el.scrollIntoView({block:'start'});
+  if(document.fonts&&document.fonts.status!=='loaded') document.fonts.ready.then(()=>{ if(view==='song'&&cur===i) el.scrollIntoView({block:'start'}) });
 }
 document.getElementById('prev').onclick=()=>{const j=step(cur,-1);if(j>=0)location.hash=SONGS[j].id};
 document.getElementById('next').onclick=()=>{const j=step(cur,1);if(j>=0)location.hash=SONGS[j].id};
@@ -291,9 +306,7 @@ function renderIndex(s){
         h+='<h3 class="colhead">'+esc(col.title)+' · <span class="gu">'+esc(col.gu)+'</span></h3>'; }
       if(so.section.gu!==sec){ if(sec!==null)h+='</div>'; sec=so.section.gu;
         h+='<div class="sechead">'+esc(so.section.en)+' · <span class="gu">'+esc(so.section.gu)+'</span></div><div class="list">'; }
-      const has=so.stanzas.some(st=>st.en);
-      h+='<a class="row" href="#'+so.id+'"><span class="n">'+so.n+'</span><span class="t">'+esc(so.stanzas[0].ro[0].replace(/[;,]$/,''))+
-        '</span>'+(has?'<span class="m">meaning</span>':'')+'</a>';
+      h+='<a class="row" href="#'+so.id+'"><span class="n">'+so.n+'</span><span class="t">'+esc(so.stanzas[0].ro[0].replace(/[;,]$/,''))+'</span></a>';
     });
     h+='</div>';
   }

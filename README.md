@@ -14,8 +14,8 @@ Two collections so far:
   (*vaat*, *manbhaai*). Words the script gets wrong are listed in
   `_work/scripts/overrides.json`.
 - **Meanings** are our own, one per stanza, with short glosses of key words. Every one is a
-  draft until reviewed. All of Cheshta and Chosath Padi pads 1–8 have meanings; the other
-  pads show the Gujarati and Roman only. Readings we are unsure of are flagged "To check".
+  draft until reviewed. Every stanza of both collections has one. Readings we are unsure of are
+  flagged "To check".
 - **Tek**, the refrain, is highlighted. In Cheshta it is shown only where the source marks one,
   with a "↺ back to the tek" cue after each stanza. In Chosath Padi, stanza 1 is taken as the
   tek. **Chhap** marks the stanza carrying the poet's name. **Also sung** gives a variant
@@ -23,9 +23,10 @@ Two collections so far:
 
 ## Using it
 
-Tap a stanza to open its meaning. In the bottom bar:
-- **ગુ** shows the Gujarati above each line;
-- **A− / A+** sets the text size;
+Tap a stanza to open its Gujarati and meaning; on a computer, hovering shows the Gujarati.
+Long lines are split at the comma so each half sings as one phrase. For bigger or smaller
+text, use the browser's own zoom. In the bottom bar:
+- **ગુ** shows the Gujarati above every line;
 - **☀︎** keeps the screen on while you sing;
 - **‹ ›** go to the previous or next pad in the same collection.
 
