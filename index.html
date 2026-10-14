@@ -35,6 +35,10 @@ header{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1p
   padding:calc(8px + env(safe-area-inset-top,0px)) 16px 8px;display:flex;align-items:center;gap:10px;font-family:var(--ui)}
 header h1{margin:0;font-size:15px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 header h1 span{color:var(--muted);font-weight:400}
+.sw{flex:1;min-width:0;border:0;background:none;color:var(--ink);font:600 16px var(--ui);padding:8px 4px;text-overflow:ellipsis}
+.song{scroll-margin-top:64px;padding-top:8px}
+.song+.song{border-top:1px solid var(--line);margin-top:26px;padding-top:26px}
+.padref a{color:inherit}
 .hbtn{border:1px solid var(--line);background:var(--bg);border-radius:9px;min-height:40px;padding:0 12px;font:600 14px var(--ui)}
 
 main{max-width:40rem;margin:0 auto;padding:20px 16px 40px}
@@ -75,11 +79,6 @@ body.both .gl-line{display:block}
 .star.on{color:var(--accent);opacity:1}
 .st:target{scroll-margin-top:70px}
 
-.pager{display:flex;gap:10px;margin-top:28px;font-family:var(--ui)}
-.pager a{flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);text-decoration:none;font-size:14px}
-.pager a span{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.pager a.nx{text-align:right}
-.pager .ph{visibility:hidden}
 .foot{margin-top:30px;font:13px/1.5 var(--ui);color:var(--muted)}
 
 /* bottom bar: thumb reach */
@@ -117,7 +116,10 @@ mark{background:var(--tint);color:inherit;border-radius:2px}
 <body>
 <header>
   <button class="hbtn" id="idxBtn" aria-label="All kirtans">☰ All</button>
-  <h1 id="ttl">Chosath Padi <span>· ચોસઠ પદી</span></h1>
+  <select id="sw" class="sw" aria-label="Choose what to read">
+    <option value="cp">Chosath Padi</option><option value="ch">Cheshta</option>
+    <option value="pbp">Purushottam Bolya Prite ↗</option>
+  </select>
   <button class="hbtn" id="savedBtn" aria-label="Saved and recent">★ <span id="bmN"></span></button>
 </header>
 <main id="main"></main>
@@ -226,30 +228,43 @@ function wireStanzas(){
   main.querySelectorAll('.star').forEach(b=>{paintStar(b,isBm(b.dataset.id));
     b.onclick=()=>{toggleBm(b.dataset.id);paintStar(b,isBm(b.dataset.id));if(view==='saved')showSaved()}});
 }
-function showSong(i,focus){
-  view='song'; cur=i; const s=SONGS[i];
-  document.getElementById('ttl').innerHTML=esc(s.col.title)+' <span>· '+esc(s.col.gu)+'</span>';
-  const p=step(i,-1), n=step(i,1);
-  main.innerHTML=
-    '<div class="padhead"><h2>'+esc(s.name)+'</h2>'+(s.ref&&!s.pad?'':'<span class="sec">'+esc(s.section.en)+(s.pad?', pad '+s.pad:'')+' · <span class="gu">'+esc(s.section.gu)+'</span></span>')+'</div>'+
-    (s.ref?'<p class="padref">'+esc(s.poet)+' · '+esc(s.ref)+'</p>':'')+
+// a whole collection is one long scroll, like lyrics; the song in view drives the hash, title and ‹ ›
+let curCol=null, spy=null;
+function songHTML(s){
+  return '<section class="song" id="'+s.id+'" data-i="'+s.i+'"><div class="padhead"><h2>'+esc(s.name)+'</h2>'+
+    (s.ref&&!s.pad?'':'<span class="sec">'+esc(s.section.en)+(s.pad?', pad '+s.pad:'')+' · <span class="gu">'+esc(s.section.gu)+'</span></span>')+'</div>'+
+    '<p class="padref">'+(s.ref?esc(s.poet)+' · '+esc(s.ref)+' · ':'')+'<a href="'+esc(s.listen)+'" target="_blank" rel="noopener">Listen ↗</a></p>'+
     (s.note?'<p class="padref">'+esc(s.note)+'</p>':'')+
-    '<div class="tools"><button class="chip" id="allM" aria-pressed="false">Show all meanings</button>'+
-    '<a class="chip" href="'+esc(s.listen)+'" target="_blank" rel="noopener">Listen on anirdesh ↗</a></div>'+
-    s.stanzas.map((st,k)=>stanzaHTML(s,st,k)).join('')+
-    '<div class="pager">'+(p>=0?'<a href="#'+SONGS[p].id+'"><span>‹ Previous</span>'+esc(SONGS[p].name)+'</a>':'<a class="ph">&nbsp;</a>')+
-      (n>=0?'<a class="nx" href="#'+SONGS[n].id+'"><span>Next ›</span>'+esc(SONGS[n].name)+'</a>':'<a class="ph">&nbsp;</a>')+'</div>'+
-    '<p class="foot">'+esc(s.col.title)+' by '+esc(s.col.poet)+'. Gujarati text from <a href="'+esc(s.col.source)+'" target="_blank" rel="noopener">anirdesh.com</a>; '+
+    s.stanzas.map((st,k)=>stanzaHTML(s,st,k)).join('')+'</section>';
+}
+function renderCol(col){
+  curCol=col;
+  main.innerHTML='<div class="tools"><button class="chip" id="allM" aria-pressed="false">Show all meanings</button></div>'+
+    col.songs.map(songHTML).join('')+
+    '<p class="foot">'+esc(col.title)+' by '+esc(col.poet)+'. Gujarati text from <a href="'+esc(col.source)+'" target="_blank" rel="noopener">anirdesh.com</a>; '+
     'Roman spelling and meanings are our own and still being reviewed.</p>';
   wireStanzas();
   const all=document.getElementById('allM');
   all.onclick=()=>{const on=all.getAttribute('aria-pressed')!=='true';all.setAttribute('aria-pressed',on);
     main.querySelectorAll('.st').forEach(el=>{el.classList.toggle('open',on);el.querySelector('.tap').setAttribute('aria-expanded',on)})};
-  document.getElementById('prev').disabled=p<0; document.getElementById('next').disabled=n<0;
+  if(spy)spy.disconnect();
+  spy=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting&&view==='song') setCur(+e.target.dataset.i,true) }),
+    {rootMargin:'-70px 0px -75% 0px'});
+  main.querySelectorAll('.song').forEach(el=>spy.observe(el));
+}
+function setCur(i,fromScroll){
+  cur=i; const s=SONGS[i];
+  document.getElementById('prev').disabled=step(i,-1)<0; document.getElementById('next').disabled=step(i,1)<0;
+  sw.value=s.col.id; ls.set(LAST,s.id);
+  if(fromScroll) history.replaceState(null,'','#'+s.id);
+}
+function showSong(i,focus){
+  const s=SONGS[i];
+  if(view!=='song'||curCol!==s.col) renderCol(s.col);
+  view='song'; setCur(i); noteHistory(s.id);
   const t=focus&&document.getElementById(focus);
-  if(t){ t.classList.add('open'); t.querySelector('.tap').setAttribute('aria-expanded','true'); t.scrollIntoView({block:'start'}) }
-  else window.scrollTo(0,0);
-  ls.set(LAST,s.id); noteHistory(s.id);
+  if(t){ t.classList.add('open'); t.querySelector('.tap').setAttribute('aria-expanded','true') }
+  (t||document.getElementById(s.id)).scrollIntoView({block:'start'});
 }
 document.getElementById('prev').onclick=()=>{const j=step(cur,-1);if(j>=0)location.hash=SONGS[j].id};
 document.getElementById('next').onclick=()=>{const j=step(cur,1);if(j>=0)location.hash=SONGS[j].id};
@@ -362,6 +377,11 @@ function restore(text){
   alert(added+' bookmark'+(added==1?'':'s')+' added'+(arr.length>added?' ('+(arr.length-added)+' already here)':'')+'.');
 }
 
+// switch collection: open the one last sung there, else its first song; PBP is the sister site
+const sw=document.getElementById('sw');
+const colStart=id=>{const h=readList(HIST).find(x=>BYID[x.id]&&BYID[x.id].col.id===id);
+  return h?BYID[h.id]:K.collections.find(c=>c.id===id).songs[0]};
+sw.onchange=()=>{ if(sw.value==='pbp') location.href='../pbp-reader/'; else location.hash=colStart(sw.value).id };
 // ---- routing: #cp-1 / #ch-170 (a song), #cp-1.2 / #ch-183.0 (a stanza), #pads, #saved ----
 function route(){
   const h=decodeURIComponent(location.hash.slice(1));
@@ -369,6 +389,7 @@ function route(){
   if(h==='saved') return showSaved();
   if(ST[h]) return showSong(ST[h].song.i,h);
   if(BYID[h]) return showSong(BYID[h].i);
+  if(K.collections.some(c=>c.id===h)){ const s=colStart(h); history.replaceState(null,'','#'+s.id); return showSong(s.i) }
   const last=ls.get(LAST,''); const s=BYID[last]||SONGS[0];
   history.replaceState(null,'','#'+s.id); showSong(s.i);
 }
