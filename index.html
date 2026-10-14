@@ -132,6 +132,7 @@ mark{background:var(--tint);color:inherit;border-radius:2px}
   <button id="next" class="grow" aria-label="Next pad">›</button>
 </nav>
 <script src="data.js"></script>
+<script src="saved.js"></script>
 <script>
 const K=window.KIRTAN, main=document.getElementById('main');
 const SONGS=[], BYID={}, ST={};                 // flat song list; id -> song; stanza id -> {song, st, k}
@@ -144,34 +145,18 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&g
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}},
           set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}};
 
-// ---- bookmarks + history: this browser only; every change re-reads storage first, so an
-// old tab left open can't save its stale list over newer bookmarks. Back up / Restore moves them.
-const BK='kirtan.bookmarks.v1', HIST='kirtan.history.v1', BKUP='kirtan.backup.v1', LAST='kirtan.last.v1';
-let storeOk=true, bms=[];
-function readList(k){
-  try{ const v=JSON.parse(localStorage.getItem(k)||'[]'); storeOk=true; return Array.isArray(v)?v:[] }
-  catch(e){ storeOk=false; return k===BK?bms:[] }
-}
-function editBm(fn){
-  bms=readList(BK); fn(bms);
-  storeOk=ls.set(BK,JSON.stringify(bms)); count();
-}
-const count=()=>document.getElementById('bmN').textContent=bms.length||'';
-const isBm=id=>bms.some(x=>x.id===id);
-function toggleBm(id){
-  editBm(l=>{const i=l.findIndex(x=>x.id===id); if(i>=0)l.splice(i,1); else l.push({id,t:Date.now(),note:''})});
-  if(isBm(id)) try{ navigator.storage.persist() }catch(e){}
-}
-function noteHistory(songId){
-  const l=readList(HIST).filter(x=>x.id!==songId); l.unshift({id:songId,t:Date.now()});
-  ls.set(HIST,JSON.stringify(l.slice(0,30)));
-}
-addEventListener('storage',e=>{
-  if(e.key!==BK)return; bms=readList(BK); count();
-  if(view==='saved'&&!main.contains(document.activeElement)) showSaved();
-  if(view==='song') main.querySelectorAll('.star').forEach(b=>paintStar(b,isBm(b.dataset.id)));
-});
-bms=readList(BK); count();
+// ---- bookmarks + history (saved.js): this browser only; Back up / Restore moves them ----
+const LAST='kirtan.last.v1';
+const count=()=>{document.getElementById('bmN').textContent=SV.list.length||''};
+const SV=savedStore({prefix:'kirtan', app:'kirtan-reader', version:1, title:'Kirtan bookmarks', histKey:'id',
+  id:v=>typeof v==='string'&&/^[a-z]+-\d+\.\d+$/.test(v)?v:null,
+  hist:x=>x&&typeof x.id==='string'&&BYID[x.id]&&+x.t?{id:x.id,t:+x.t}:null,
+  describe:id=>{const e=ST[id];return {roman:e?e.st.ro:null,gujarati:e?e.st.gu:null}},
+  changed(other){ count(); if(!other)return;
+    if(view==='saved'&&!main.contains(document.activeElement)) showSaved();
+    if(view==='song') main.querySelectorAll('.star').forEach(b=>paintStar(b,SV.has(b.dataset.id))) }});
+const isBm=id=>SV.has(id);
+count();
 
 // ---- display preferences ----
 const SIZES=[1.05,1.18,1.3,1.5,1.75,2.05];
@@ -226,7 +211,7 @@ function wireStanzas(){
     tap.onclick=()=>{const o=!el.classList.contains('open');el.classList.toggle('open',o);tap.setAttribute('aria-expanded',o)};
   });
   main.querySelectorAll('.star').forEach(b=>{paintStar(b,isBm(b.dataset.id));
-    b.onclick=()=>{toggleBm(b.dataset.id);paintStar(b,isBm(b.dataset.id));if(view==='saved')showSaved()}});
+    b.onclick=()=>{SV.toggle(b.dataset.id);paintStar(b,isBm(b.dataset.id));if(view==='saved')showSaved()}});
 }
 // a whole collection is one long scroll, like lyrics; the song in view drives the hash, title and ‹ ›
 let curCol=null, spy=null;
@@ -252,16 +237,23 @@ function renderCol(col){
     {rootMargin:'-70px 0px -75% 0px'});
   main.querySelectorAll('.song').forEach(el=>spy.observe(el));
 }
+let tSung;
+function noteSung(now){
+  clearTimeout(tSung); if(view!=='song')return;
+  const f=()=>SV.addHistory({id:SONGS[cur].id,t:Date.now()}); if(now)f(); else tSung=setTimeout(f,3000);
+}
+addEventListener('pagehide',()=>noteSung(true));
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') noteSung(true) });
 function setCur(i,fromScroll){
   cur=i; const s=SONGS[i];
   document.getElementById('prev').disabled=step(i,-1)<0; document.getElementById('next').disabled=step(i,1)<0;
   sw.value=s.col.id; ls.set(LAST,s.id);
-  if(fromScroll) history.replaceState(null,'','#'+s.id);
+  if(fromScroll){ history.replaceState(null,'','#'+s.id); noteSung() }
 }
 function showSong(i,focus){
   const s=SONGS[i];
   if(view!=='song'||curCol!==s.col) renderCol(s.col);
-  view='song'; setCur(i); noteHistory(s.id);
+  view='song'; setCur(i); noteSung(true);
   const t=focus&&document.getElementById(focus);
   if(t){ t.classList.add('open'); t.querySelector('.tap').setAttribute('aria-expanded','true') }
   (t||document.getElementById(s.id)).scrollIntoView({block:'start'});
@@ -285,13 +277,13 @@ function showIndex(qv=''){
 function renderIndex(s){
   const res=document.getElementById('res'); let h='';
   if(s.length>=2){
-    const rx=new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'), hits=[];
+    const q=s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), rx=new RegExp(q,'i'), split=new RegExp('('+q+')','i'), hits=[];
     SONGS.forEach(so=>so.stanzas.forEach((st,k)=>{
       const line=[...st.ro,...st.gu,st.en||''].find(t=>rx.test(t)); if(line)hits.push({so,st,k,line});
     }));
     h='<p class="meta">'+hits.length+' stanza'+(hits.length==1?'':'s')+' matching “'+esc(s)+'”</p><div class="list">'+
       hits.slice(0,150).map(x=>'<a class="row" href="#'+x.st.id+'"><span class="n">'+x.so.n+'.'+x.st.no+'</span><span class="t">'+
-        esc(x.line).replace(new RegExp('('+esc(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>')+'</span></a>').join('')+'</div>';
+        x.line.split(split).map((p,i)=>i%2?'<mark>'+esc(p)+'</mark>':esc(p)).join('')+'</span></a>').join('')+'</div>';
   }else{
     let sec=null, col=null;
     SONGS.forEach(so=>{
@@ -312,15 +304,15 @@ function renderIndex(s){
 function ago(t){const d=Math.floor((Date.now()-t)/864e5);return d<1?'today':d<2?'yesterday':d+' days ago'}
 function showSaved(){
   view='saved'; document.getElementById('prev').disabled=document.getElementById('next').disabled=true;
-  bms=readList(BK); count();
-  const L=[...bms].sort((a,b)=>b.t-a.t), H=readList(HIST).filter(x=>BYID[x.id]).slice(0,10);
-  const last=+ls.get(BKUP,0)||0, stale=L.length&&(!last||Date.now()-last>30*864e5);
+  SV.reload(); count();
+  const L=[...SV.list].sort((a,b)=>b.t-a.t), H=SV.history().filter(x=>BYID[x.id]).slice(0,10);
+  const last=SV.lastBackup(), stale=L.length&&(!last||Date.now()-last>30*864e5);
   let h='<h2 style="font:600 1.4rem var(--ui);margin:0">Saved</h2>'+
     '<p class="meta">'+L.length+' bookmarked · kept in this browser on this device only · '+(last?'last backed up '+ago(last):'not backed up yet')+'</p>'+
     (stale?'<p class="nudge">Browsers sometimes clear saved data, so keep a copy. <b>Back up</b> saves a small file to Files, iCloud or Notes; <b>Restore</b> brings it back on any device.</p>':'')+
     '<div class="btns"><button class="chip" id="bkup">Back up</button><button class="chip" id="rest">Restore…</button>'+
     '<input type="file" id="file" accept=".json,application/json" hidden></div>';
-  if(!storeOk) h+='<p class="empty">This browser is blocking storage (private mode?), so bookmarks won’t be kept after you close the page.</p>';
+  if(!SV.ok) h+='<p class="empty">This browser is blocking storage (private mode?), so bookmarks won’t be kept after you close the page.</p>';
   if(H.length) h+='<div class="sechead">Recently sung</div><div class="list">'+H.map(x=>{const so=BYID[x.id];
     return '<a class="row" href="#'+so.id+'"><span class="t">'+esc(so.name)+'<i>'+esc(so.col.title)+'</i></span><span class="m">'+ago(x.t)+'</span></a>'}).join('')+'</div>';
   h+='<div class="sechead">Bookmarks</div>';
@@ -333,55 +325,21 @@ function showSaved(){
   main.innerHTML=h; window.scrollTo(0,0);
   main.querySelectorAll('.card').forEach(card=>{
     const id=card.dataset.id, ta=card.querySelector('.note');
-    const setNote=()=>editBm(l=>{const x=l.find(y=>y.id===id); if(x)x.note=ta.value});
+    const setNote=()=>SV.setNote(id,ta.value);
     let tn; ta.oninput=()=>{clearTimeout(tn);tn=setTimeout(setNote,300)};
-    ta.onblur=()=>{const x=bms.find(y=>y.id===id); if(x&&x.note!==ta.value)setNote()};
-    card.querySelector('[data-rm]').onclick=()=>{editBm(l=>{const i=l.findIndex(y=>y.id===id);if(i>=0)l.splice(i,1)});showSaved()};
+    ta.onblur=()=>{const x=SV.list.find(y=>y.id===id); if(x&&x.note!==ta.value)setNote()};
+    card.querySelector('[data-rm]').onclick=()=>{SV.remove(id);showSaved()};
   });
-  document.getElementById('bkup').onclick=backup;
+  document.getElementById('bkup').onclick=()=>SV.backup().then(ok=>{if(ok)showSaved()});
   const f=document.getElementById('file');
   document.getElementById('rest').onclick=()=>f.click();
-  f.onchange=()=>{const file=f.files[0]; if(file)file.text().then(restore)};
+  f.onchange=()=>{const file=f.files[0]; if(file)file.text().then(t=>{const msg=SV.restore(t);showSaved();alert(msg)})};
 }
-// Back up: the share sheet on phones (save to Files / iCloud / Notes), a download elsewhere
-async function backup(){
-  bms=readList(BK);
-  const out={app:'kirtan-reader',version:1,exported:new Date().toISOString(),
-    bookmarks:bms.map(x=>{const e=ST[x.id];return {id:x.id,t:x.t,note:x.note||'',roman:e?e.st.ro:null,gujarati:e?e.st.gu:null}}),
-    history:readList(HIST)};
-  const name='kirtan-bookmarks-'+new Date().toISOString().slice(0,10)+'.json';
-  const file=new File([JSON.stringify(out,null,1)],name,{type:'application/json'});
-  const done=()=>{ls.set(BKUP,String(Date.now()));showSaved()};
-  if(navigator.canShare&&navigator.canShare({files:[file]}))
-    try{ await navigator.share({files:[file],title:'Kirtan bookmarks'}); done(); return }
-    catch(e){ if(e.name==='AbortError')return }      // cancelled; anything else falls back to download
-  const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=name;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  done();
-}
-function restore(text){
-  let arr, hist=[];
-  try{ const d=JSON.parse(text); arr=Array.isArray(d)?d:d.bookmarks; if(!Array.isArray(arr))throw 0; if(Array.isArray(d.history))hist=d.history }
-  catch(e){ alert('That file doesn’t look like a bookmarks backup.'); return }
-  let added=0;
-  editBm(l=>arr.forEach(x=>{
-    if(!x||typeof x.id!=='string'||!/^[a-z]+-\d+\.\d+$/.test(x.id))return;
-    const have=l.find(y=>y.id===x.id);
-    if(!have){l.push({id:x.id,t:+x.t||Date.now(),note:String(x.note||'')});added++}
-    else if(!have.note&&x.note) have.note=String(x.note);
-  }));
-  const by={};
-  [...readList(HIST),...hist].forEach(x=>{ if(x&&typeof x.id==='string'&&BYID[x.id]&&+x.t&&!(by[x.id]&&by[x.id].t>=+x.t)) by[x.id]={id:x.id,t:+x.t} });
-  ls.set(HIST,JSON.stringify(Object.values(by).sort((a,b)=>b.t-a.t).slice(0,30)));
-  showSaved();
-  alert(added+' bookmark'+(added==1?'':'s')+' added'+(arr.length>added?' ('+(arr.length-added)+' already here)':'')+'.');
-}
-
 // switch collection: open the one last sung there, else its first song; PBP is the sister site
 const sw=document.getElementById('sw');
-const colStart=id=>{const h=readList(HIST).find(x=>BYID[x.id]&&BYID[x.id].col.id===id);
+const colStart=id=>{const h=SV.history().find(x=>BYID[x.id]&&BYID[x.id].col.id===id);
   return h?BYID[h.id]:K.collections.find(c=>c.id===id).songs[0]};
-sw.onchange=()=>{ if(sw.value==='pbp') location.href='../pbp-reader/'; else location.hash=colStart(sw.value).id };
+sw.onchange=()=>{ noteSung(true); if(sw.value==='pbp') location.href='../pbp-reader/'; else location.hash=colStart(sw.value).id };
 // ---- routing: #cp-1 / #ch-170 (a song), #cp-1.2 / #ch-183.0 (a stanza), #pads, #saved ----
 function route(){
   const h=decodeURIComponent(location.hash.slice(1));
@@ -394,6 +352,7 @@ function route(){
   history.replaceState(null,'','#'+s.id); showSong(s.i);
 }
 addEventListener('hashchange',route);
+addEventListener('pageshow',()=>{sw.value=SONGS[cur].col.id});
 document.getElementById('idxBtn').onclick=()=>{location.hash='pads'};
 document.getElementById('savedBtn').onclick=()=>{location.hash='saved'};
 route();
