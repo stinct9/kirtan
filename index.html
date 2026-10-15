@@ -47,9 +47,7 @@ main{max-width:40rem;margin:0 auto;padding:20px 16px 40px}
 .padhead h2{margin:0;font:600 1.6rem/1.2 var(--ui)}
 .padhead .sec{font:14px var(--ui);color:var(--muted)}
 .padref{font:13px/1.5 var(--ui);color:var(--muted);margin:0 0 4px}
-.tools{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 22px;font-family:var(--ui);font-size:14px}
 .chip{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:5px 12px;text-decoration:none;color:var(--ink);font:500 14px var(--ui)}
-.chip[aria-pressed="true"]{background:var(--tint);color:var(--tint-ink);border-color:transparent}
 
 .st{position:relative;margin:0 -10px 14px;border-radius:12px}
 .st.tek{background:var(--tint)}
@@ -129,6 +127,7 @@ mark{background:var(--tint);color:inherit;border-radius:2px}
 <main id="main"></main>
 <nav class="bar" aria-label="Pad controls">
   <button id="prev" class="grow" aria-label="Previous pad">‹</button>
+  <button id="meanBtn" aria-pressed="false" title="Open every meaning">Meanings</button>
   <button id="guBtn" aria-pressed="false" aria-label="Show Gujarati above each line" title="Show Gujarati">ગુ</button>
   <button id="wake" aria-pressed="false" aria-label="Keep screen on" title="Keep screen on">☀︎</button>
   <button id="next" class="grow" aria-label="Next pad">›</button>
@@ -166,6 +165,16 @@ const guBtn=document.getElementById('guBtn');
 function setGu(on){document.body.classList.toggle('both',on);guBtn.setAttribute('aria-pressed',on);ls.set('kirtan.gu',on?'1':'0')}
 guBtn.onclick=()=>setGu(!document.body.classList.contains('both'));
 setGu(ls.get('kirtan.gu','0')==='1');
+
+// open or close every meaning at once, keeping the stanza in view where it is
+const meanBtn=document.getElementById('meanBtn');
+function setMean(on){
+  meanBtn.setAttribute('aria-pressed',on); ls.set('kirtan.mean',on?'1':'0');
+  const sts=[...main.querySelectorAll('.st')], top=sts.find(el=>el.getBoundingClientRect().bottom>70), y=top&&top.getBoundingClientRect().top;
+  sts.forEach(el=>{el.classList.toggle('open',on);el.querySelector('.tap').setAttribute('aria-expanded',on)});
+  if(top) scrollBy(0,top.getBoundingClientRect().top-y);
+}
+meanBtn.onclick=()=>setMean(meanBtn.getAttribute('aria-pressed')!=='true');
 
 // keep the screen on while singing; the browser drops the lock when the page is hidden, so take it again on return
 const wakeBtn=document.getElementById('wake'); let lock=null, wantWake=false;
@@ -237,14 +246,10 @@ function songHTML(s){
 }
 function renderCol(col){
   curCol=col;
-  main.innerHTML='<div class="tools"><button class="chip" id="allM" aria-pressed="false">Show all meanings</button></div>'+
-    col.songs.map(songHTML).join('')+
+  main.innerHTML=col.songs.map(songHTML).join('')+
     '<p class="foot">'+esc(col.title)+' by '+esc(col.poet)+'. Gujarati text from <a href="'+esc(col.source)+'" target="_blank" rel="noopener">anirdesh.com</a>; '+
     'Roman spelling and meanings are our own and still being reviewed.</p>';
-  wireStanzas();
-  const all=document.getElementById('allM');
-  all.onclick=()=>{const on=all.getAttribute('aria-pressed')!=='true';all.setAttribute('aria-pressed',on);
-    main.querySelectorAll('.st').forEach(el=>{el.classList.toggle('open',on);el.querySelector('.tap').setAttribute('aria-expanded',on)})};
+  wireStanzas(); setMean(ls.get('kirtan.mean','0')==='1');
   if(spy)spy.disconnect();
   spy=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting&&view==='song') setCur(+e.target.dataset.i,true) }),
     {rootMargin:'-70px 0px -75% 0px'});
