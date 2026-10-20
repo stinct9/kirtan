@@ -249,7 +249,7 @@ function renderCol(col){
   main.innerHTML=col.songs.map(songHTML).join('')+
     '<p class="foot">'+esc(col.title)+' by '+esc(col.poet)+'. Gujarati text from <a href="'+esc(col.source)+'" target="_blank" rel="noopener">anirdesh.com</a>; '+
     'Roman spelling and meanings are our own and still being reviewed.</p>';
-  wireStanzas(); setMean(ls.get('kirtan.mean','0')==='1');
+  wireStanzas(); setMean(ls.get('kirtan.mean','1')==='1');
   if(spy)spy.disconnect();
   spy=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting&&view==='song') setCur(+e.target.dataset.i,true) }),
     {rootMargin:'-70px 0px -75% 0px'});
