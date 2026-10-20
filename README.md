@@ -3,11 +3,13 @@
 A sing-aloud reader for kirtans and pads: the Gujarati in easy Roman letters, large enough to
 sing from at arm's length, with a plain-English meaning one tap away.
 
-Two collections so far:
+Three collections so far:
 - **Chosath Padi** by Nishkulanand Swami: 64 pads, 264 stanzas.
 - **Cheshta**: 23 kirtans, 165 stanzas (Kirtan Muktavali 170–192). It includes Premanand Swami's
   Lila Chintamani and Dhyan Chintamani, plus kirtans by Premanand, Nishkulanand and Muktanand
   Swami.
+- **Kirtans**: single kirtans from Kirtan Muktavali, added one at a time. So far: *Ek same
+  Amdavadmaa* by Gopaldas (2-248).
 
 - **Roman spelling** is made by a script and then checked by ear. It uses plain letters: *aa* for
   the long a, *chh*, *sh*, and no accents. The silent "a" is dropped the way it's spoken
@@ -38,7 +40,8 @@ For the best chance of keeping them, add the reader to your home screen.
 
 The poems are public domain. The Gujarati text is taken from anirdesh.com
 ([Chosath Padi](https://www.anirdesh.com/kavya/chosath-padi/),
-[Cheshta](https://www.anirdesh.com/kirtan/cheshta.php)), and each pad links back there for
+[Cheshta](https://www.anirdesh.com/kirtan/cheshta.php), and single kirtans from
+[Kirtan Muktavali](https://www.anirdesh.com/kirtan/)), and each pad links back there for
 listening. anirdesh's own Roman text, translation and footnotes are their work and are not
 copied here. The modern invocation that opens their Chosath Padi is left out, as is the closing doha on the
 Cheshta page, which falls outside the Kirtan Muktavali numbering.
@@ -49,10 +52,11 @@ Cheshta page, which falls outside the Kirtan Muktavali numbering.
 python3 -I _work/scripts/fetch.py    # once; caches pages in _work/raw/
 python3 -I _work/scripts/parse.py    # -> _work/chosath_padi.json (checks: 64 pads, no empty stanza)
 python3 -I _work/scripts/parse_cheshta.py   # -> _work/cheshta.json
+python3 -I _work/scripts/parse_km.py        # _work/raw/km/km<part>-<no>.html -> _work/kirtans.json
 python3 _work/scripts/roman.py       # transliteration self-check
 python3 _work/scripts/build.py       # + _work/meanings/*.json -> Reader/data.js
 ```
 
-Stanza ids never change: `cp-<pad>.<stanza>`, and `ch-<Kirtan Muktavali no>.<stanza>` with
-the tek as `.0`. The build refuses to drop one, so bookmarks and
+Stanza ids never change: `cp-<pad>.<stanza>`, `ch-<Kirtan Muktavali no>.<stanza>` and
+`km-<part>-<no>.<stanza>`, with the tek as `.0`. The build refuses to drop one, so bookmarks and
 links stay valid. A new collection gets its own id prefix and its own meanings file.

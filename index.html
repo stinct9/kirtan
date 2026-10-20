@@ -119,7 +119,7 @@ mark{background:var(--tint);color:inherit;border-radius:2px}
 <header>
   <button class="hbtn" id="idxBtn" aria-label="All kirtans">☰ All</button>
   <select id="sw" class="sw" aria-label="Choose what to read">
-    <option value="cp">Chosath Padi</option><option value="ch">Cheshta</option>
+    <option value="cp">Chosath Padi</option><option value="ch">Cheshta</option><option value="km">Kirtans</option>
     <option value="pbp">Purushottam Bolya Prite ↗</option>
   </select>
   <button class="hbtn" id="savedBtn" aria-label="Saved and recent">★ <span id="bmN"></span></button>
@@ -151,7 +151,7 @@ const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v}catch(
 const LAST='kirtan.last.v1';
 const count=()=>{document.getElementById('bmN').textContent=SV.list.length||''};
 const SV=savedStore({prefix:'kirtan', app:'kirtan-reader', version:1, title:'Kirtan bookmarks', histKey:'id',
-  id:v=>typeof v==='string'&&/^[a-z]+-\d+\.\d+$/.test(v)?v:null,
+  id:v=>typeof v==='string'&&/^[a-z]+-\d+(-\d+)?\.\d+$/.test(v)?v:null,
   hist:x=>x&&typeof x.id==='string'&&BYID[x.id]&&+x.t?{id:x.id,t:+x.t}:null,
   describe:id=>{const e=ST[id];return {roman:e?e.st.ro:null,gujarati:e?e.st.gu:null}},
   changed(other){ count(); if(!other)return;
