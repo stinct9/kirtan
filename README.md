@@ -8,8 +8,8 @@ Three collections so far:
 - **Cheshta**: 23 kirtans, 165 stanzas (Kirtan Muktavali 170–192). It includes Premanand Swami's
   Lila Chintamani and Dhyan Chintamani, plus kirtans by Premanand, Nishkulanand and Muktanand
   Swami.
-- **Kirtans**: single kirtans from Kirtan Muktavali, added one at a time. So far: *Ek same
-  Amdavadmaa* by Gopaldas (2-248).
+- **Kirtans**: single kirtans from Kirtan Muktavali, added one at a time. So far: Gopaldas's nine
+  pads on Shri Hari in Amdavad, starting *Ek same Amdavadmaa* (2-248 to 2-256).
 
 - **Roman spelling** is made by a script and then checked by ear. It uses plain letters: *aa* for
   the long a, *chh*, *sh*, and no accents. The silent "a" is dropped the way it's spoken
