@@ -97,6 +97,9 @@ body.both .gu-in{display:none}
 .colhead:first-child{margin-top:8px}
 .sechead{font:600 12px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:22px 0 8px}
 .list{display:flex;flex-direction:column;gap:6px}
+.az{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px}
+.az button{min-width:36px;min-height:36px;border:1px solid var(--line);background:var(--panel);border-radius:8px;font:600 15px var(--ui);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--tint);color:var(--tint-ink);border-color:var(--accent)}
 .row{display:flex;gap:12px;align-items:baseline;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--ink);text-decoration:none;font-family:var(--ui)}
 .row:hover{border-color:var(--accent)}
 .row .n{font-weight:600;min-width:2.2em;font-variant-numeric:tabular-nums;color:var(--muted)}
@@ -117,7 +120,7 @@ mark{background:var(--tint);color:inherit;border-radius:2px}
 </head>
 <body>
 <header>
-  <button class="hbtn" id="idxBtn" aria-label="All kirtans">☰ All</button>
+  <button class="hbtn" id="idxBtn" aria-label="Index of kirtans">☰ Index</button>
   <select id="sw" class="sw" aria-label="Choose what to read">
     <option value="cp">Chosath Padi</option><option value="ch">Cheshta</option><option value="km">Kirtans</option>
     <option value="pbp">Purushottam Bolya Prite ↗</option>
@@ -286,24 +289,46 @@ addEventListener('keydown',e=>{
   if(e.key==='ArrowRight')document.getElementById('next').click();
 });
 
-// ---- index of pads, with search ----
+// ---- index: A–Z of first lines (like the back of a book) or by book, with search ----
+// loose Roman match, so "aj mare orde" finds "Aaj maare orde": drop a's and doubled letters
+const norm=t=>t.normalize('NFD').toLowerCase().replace(/[^a-z ]/g,'').replace(/a/g,'').replace(/(.)\1+/g,'$1').replace(/ +/g,' ').trim();
+const firstLine=so=>so.stanzas[0].ro[0].replace(/[;,]$/,'');
+const whereIs=so=>{const sec=SONGS.filter(x=>x.col===so.col&&x.section.gu===so.section.gu), k=sec.indexOf(so)+1;
+  return (so.ref?esc(so.ref.replace('Kirtan Muktavali','KM')):esc(so.col.title)+' '+so.n)+
+    (sec.length>1&&so.col.id!=='cp'?' · '+esc(so.section.en)+', pad '+k+' of '+sec.length:'')};
+const AZ=SONGS.map(so=>({key:firstLine(so),so,sub:whereIs(so)}));
+SONGS.forEach(so=>{const first=SONGS.find(x=>x.col===so.col&&x.section.gu===so.section.gu);   // section names too, once each
+  if(first===so&&so.section.en!==so.name&&!AZ.some(e=>e.key===so.section.en)) AZ.push({key:so.section.en,so,sub:'see '+esc(firstLine(so))+' · '+esc(so.col.title),sec:1})});
+AZ.sort((a,b)=>a.key.localeCompare(b.key,'en',{sensitivity:'base'}));
 function showIndex(qv=''){
   view='index'; document.getElementById('prev').disabled=document.getElementById('next').disabled=true;
-  main.innerHTML='<h2 style="font:600 1.4rem var(--ui);margin:0">All kirtans</h2>'+
-    '<input class="search" id="q" type="search" placeholder="Search Roman, Gujarati or English…" autocomplete="off" value="'+esc(qv)+'"><div id="res"></div>';
+  const az=ls.get('kirtan.idx','az')==='az';
+  main.innerHTML='<h2 style="font:600 1.4rem var(--ui);margin:0">Index</h2>'+
+    '<input class="search" id="q" type="search" placeholder="Search Roman, Gujarati or English…" autocomplete="off" value="'+esc(qv)+'">'+
+    '<div class="btns"><button class="chip" data-v="az" aria-pressed="'+az+'">A–Z first lines</button><button class="chip" data-v="book" aria-pressed="'+!az+'">By book</button></div><div id="res"></div>';
   const q=document.getElementById('q'); q.oninput=()=>renderIndex(q.value.trim()); renderIndex(qv);
+  main.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{ls.set('kirtan.idx',b.dataset.v); showIndex(q.value.trim())});
   window.scrollTo(0,0);
 }
 function renderIndex(s){
   const res=document.getElementById('res'); let h='';
   if(s.length>=2){
-    const q=s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), rx=new RegExp(q,'i'), split=new RegExp('('+q+')','i'), hits=[];
+    const q=s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), rx=new RegExp(q,'i'), split=new RegExp('('+q+')','i'), nq=norm(s), hits=[];
     SONGS.forEach(so=>so.stanzas.forEach((st,k)=>{
-      const line=[...st.ro,...st.gu,st.en||''].find(t=>rx.test(t)); if(line)hits.push({so,st,k,line});
+      const line=[...st.ro,...st.gu,st.en||''].find(t=>rx.test(t))||(nq.length>=3&&st.ro.find(t=>norm(t).includes(nq)));
+      if(line)hits.push({so,st,k,line});
     }));
     h='<p class="meta">'+hits.length+' stanza'+(hits.length==1?'':'s')+' matching “'+esc(s)+'”</p><div class="list">'+
-      hits.slice(0,150).map(x=>'<a class="row" href="#'+x.st.id+'"><span class="n">'+x.so.n+'.'+x.st.no+'</span><span class="t">'+
-        x.line.split(split).map((p,i)=>i%2?'<mark>'+esc(p)+'</mark>':esc(p)).join('')+'</span></a>').join('')+'</div>';
+      hits.slice(0,150).map(x=>'<a class="row" href="#'+x.st.id+'"><span class="t">'+
+        x.line.split(split).map((p,i)=>i%2?'<mark>'+esc(p)+'</mark>':esc(p)).join('')+'<i>'+whereIs(x.so)+', stanza '+x.st.no+'</i></span></a>').join('')+'</div>';
+  }else if(ls.get('kirtan.idx','az')==='az'){
+    const L=[...new Set(AZ.map(e=>e.key[0].toUpperCase()))];
+    h='<div class="az">'+L.map(c=>'<button data-l="'+c+'">'+c+'</button>').join('')+'</div>';
+    L.forEach(c=>{ h+='<div class="sechead" id="az-'+c+'">'+c+'</div><div class="list">'+
+      AZ.filter(e=>e.key[0].toUpperCase()===c).map(e=>'<a class="row" href="#'+e.so.id+'"><span class="t">'+(e.sec?'<em>'+esc(e.key)+'</em>':esc(e.key))+'<i>'+e.sub+'</i></span></a>').join('')+'</div>' });
+    res.innerHTML=h;
+    res.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>document.getElementById('az-'+b.dataset.l).scrollIntoView({block:'start'}));
+    return;
   }else{
     let sec=null, col=null;
     SONGS.forEach(so=>{
@@ -311,7 +336,7 @@ function renderIndex(s){
         h+='<h3 class="colhead">'+esc(col.title)+' · <span class="gu">'+esc(col.gu)+'</span></h3>'; }
       if(so.section.gu!==sec){ if(sec!==null)h+='</div>'; sec=so.section.gu;
         h+='<div class="sechead">'+esc(so.section.en)+' · <span class="gu">'+esc(so.section.gu)+'</span></div><div class="list">'; }
-      h+='<a class="row" href="#'+so.id+'"><span class="n">'+so.n+'</span><span class="t">'+esc(so.stanzas[0].ro[0].replace(/[;,]$/,''))+'</span></a>';
+      h+='<a class="row" href="#'+so.id+'"><span class="n">'+so.n+'</span><span class="t">'+esc(firstLine(so))+'</span></a>';
     });
     h+='</div>';
   }
@@ -358,7 +383,7 @@ const sw=document.getElementById('sw');
 const colStart=id=>{const h=SV.history().find(x=>BYID[x.id]&&BYID[x.id].col.id===id);
   return h?BYID[h.id]:K.collections.find(c=>c.id===id).songs[0]};
 sw.onchange=()=>{ noteSung(true); if(sw.value==='pbp') location.href='../pbp-reader/'; else location.hash=colStart(sw.value).id };
-// ---- routing: #cp-1 / #ch-170 (a song), #cp-1.2 / #ch-183.0 (a stanza), #pads, #saved ----
+// ---- routing: #cp-1 / #ch-170 (a song), #cp-1.2 / #ch-183.0 (a stanza), #pads, #saved, #aaj-sakhi (first line) ----
 function route(){
   const h=decodeURIComponent(location.hash.slice(1));
   if(h==='pads') return showIndex();
@@ -366,6 +391,8 @@ function route(){
   if(ST[h]) return showSong(ST[h].song.i,h);
   if(BYID[h]) return showSong(BYID[h].i);
   if(K.collections.some(c=>c.id===h)){ const s=colStart(h); history.replaceState(null,'','#'+s.id); return showSong(s.i) }
+  const nh=norm(h.replace(/-/g,' ')), byLine=nh.length>=3&&SONGS.find(so=>norm(firstLine(so)).startsWith(nh));
+  if(byLine){ history.replaceState(null,'','#'+byLine.id); return showSong(byLine.i) }
   const last=ls.get(LAST,''); const s=BYID[last]||SONGS[0];
   history.replaceState(null,'','#'+s.id); showSong(s.i);
 }

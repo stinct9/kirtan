@@ -29,7 +29,14 @@ Three collections so far:
 
 Tap a stanza to open its Gujarati and meaning; on a computer, hovering shows the Gujarati.
 Long lines are split at the comma so each half sings as one phrase. For bigger or smaller
-text, use the browser's own zoom. In the bottom bar:
+text, use the browser's own zoom.
+
+**☰ Index** lists every pad by its first line, A to Z, like the index at the back of a book, with
+a letter bar to jump to. **By book** shows them in order by collection instead. Search doesn't need
+exact spelling: *aj mare orde* finds *Aaj maare orde*. A link can name a first line too, such as
+`stinct9.github.io/kirtan/#aaj-sakhi`.
+
+In the bottom bar:
 - **ગુ** shows the Gujarati above every line;
 - **☀︎** keeps the screen on while you sing;
 - **‹ ›** go to the previous or next pad in the same collection.
