@@ -10,8 +10,10 @@ Three collections so far:
   Swami.
 - **Kirtans**: single kirtans from Kirtan Muktavali, added one at a time. So far: *Aaj maare orde re*
   by Premanand Swami (1-270 to 1-273), *Aaj sakhi aanandni heli* by Jeram Brahmachari
-  (1-592 to 1-595), and Gopaldas's nine pads on Shri Hari in Amdavad, starting *Ek same
-  Amdavadmaa* (2-248 to 2-256).
+  (1-592 to 1-595), Gopaldas's nine pads on Shri Hari in Amdavad, starting *Ek same
+  Amdavadmaa* (2-248 to 2-256), and Brahmanand Swami's Ekadashi pads: *Kode kode ekaadashi
+  kijiye re* (1-252 to 1-255), *Ochchhavni pyaari Keshavni* (1-256 to 1-258), *Ekaadashi pragat
+  prabhujine pyaari re* (2-1364) and, for Pavitra Ekadashi, 1-224 and 1-225.
 
 - **Roman spelling** is made by a script and then checked by ear. It uses plain letters: *aa* for
   the long a, *chh*, *sh*, and no accents. The silent "a" is dropped the way it's spoken
